@@ -18,13 +18,88 @@ void display(node *a)
     if(a->right!=NULL)
     display(a->right);
 }
+node* search(int k)
+{
+    node *temp=head;
+    while (1)
+    {   
+        if(temp->key<=k && temp->right!=NULL)
+        temp=temp->right;
+        else if (temp->key>k && temp->left!=NULL)
+        temp=temp->left;
+        else
+        break;
+    }
+    if (temp->key==k)
+    return temp;
+    return NULL;
+}
+void removeNhelp(node *t,node *rp)
+{
+    if (t->parent->key>t->key)
+    {//parent is in left
+        t->parent->left=rp;}
+    else
+    {
+        //right of its parent
+        t->parent->right=rp;
+    }
+            
+}
+void removeN(int k)
+{
+    node *t=search(k);
+    if(t==NULL){
+        printf("Unable to find any such key as ->%d",k);
+        return ;}
+    else
+    {
+        if(t->left==NULL && t->right==NULL){
+            removeNhelp(t,NULL);
+            free(t);}
+        else if (t->left!=NULL && t->right!=NULL)
+        {
+            (t->right)->parent=t->parent;
+            node *temp=t->right;
+            while(1)
+            {
+                if(temp->left!=NULL)
+                temp=temp->left;
+                else
+                break;
+            }
+            (t->left)->parent=temp;
+            temp->left=t->left;
+            removeNhelp(t,t->right);
+            free(t);
+        }
+        else if(t->left!=NULL && t->right==NULL)
+        {
+            (t->left)->parent=t->parent;
+            removeNhelp(t,t->left);
+            free(t);
+        }
+        else if(t->left==NULL && t->right!=NULL)
+        {
+            (t->right)->parent=t->parent;
+            removeNhelp(t,t->right);
+            free(t);
+        }
+    }
+}
+void addN(node **a,node *pa,int k)
+{
+    node *t=(node*)malloc(sizeof(node));
+    t->key=k;
+    t->parent=pa;
+    *a=t;
+}
 void addnode(int k)
 {
     if (head==NULL)
     {
         printf("%d,head\n",k);
-        head=(node*)malloc(sizeof(node));
-        head->key=k;
+        addN(&head,NULL,k);
         return;
     }
     else{
@@ -40,15 +115,11 @@ void addnode(int k)
                 } 
                 else{
                     printf("%d,right\n",k);
-                    node *t;
-                    t=(node*)malloc(sizeof(node));
-                    t->key=k;
-                    t->parent=temp;
-                    temp->right=t;
+                    addN(&(temp->right),temp,k);
                     return;
                 }               
             }
-            if (temp->key>=k)
+            if (temp->key>k)
             {
                 if(temp->left!=NULL)
                 {
@@ -57,11 +128,7 @@ void addnode(int k)
                 }
                 else{
                     printf("%d,left\n",k);
-                    node *t;
-                    t=(node*)malloc(sizeof(node));
-                    t->key=k;
-                    t->parent=temp;
-                    temp->left=t;
+                    addN(&(temp->left),temp,k);
                     return;
                 }
             }
